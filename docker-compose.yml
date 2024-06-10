@@ -1,0 +1,43 @@
+version: '3.9'
+services:
+  app:
+    container_name: dbo_container
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+      - DATABASE_HOST=${PGHOST}
+      - DATABASE_PORT=${PGPORT}
+    build: .
+    ports:
+      - '8080:8080'
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - postgresdb
+    networks:
+      - dbo_test
+
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+      - DATABASE_HOST=${PGHOST}
+    ports:
+      - '5434:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - dbo_test
+
+volumes:
+  pg_data:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  dbo_test:
+    driver: bridge
