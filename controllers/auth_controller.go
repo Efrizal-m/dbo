@@ -5,6 +5,8 @@ import (
 	"dbo/services"
 	"net/http"
 
+	i "dbo/interfaces"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,10 +14,30 @@ type AuthController struct {
 	service services.AuthService
 }
 
+// swagger:response tokenResponse
+type tokenResponseWrapper struct {
+	// Example: {"token": "your-token-value"}
+	Token string `json:"token"`
+}
+
+var _ = tokenResponseWrapper{}
+var _ = i.ErrorResponseWrapper{}
+
 func NewAuthController(service services.AuthService) *AuthController {
 	return &AuthController{service}
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user with username and password
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user body models.User true "User"
+// @Success 201 {object} models.User
+// @Failure 400 {object} i.ErrorResponseWrapper
+// @Failure 500 {object} i.ErrorResponseWrapper
+// @Router /auth/register [post]
 func (ctrl *AuthController) Register(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -32,6 +54,17 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": createdUser})
 }
 
+// Login godoc
+// @Summary Login a user
+// @Description Login a user and get a JWT token
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user body models.User true "User"
+// @Success 200 {object} tokenResponseWrapper
+// @Failure 400 {object} i.ErrorResponseWrapper
+// @Failure 401 {object} i.ErrorResponseWrapper
+// @Router /auth/login [post]
 func (ctrl *AuthController) Login(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
