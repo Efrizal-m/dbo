@@ -1,29 +1,43 @@
-version: '3.8'
-
+version: '3.9'
 services:
-  db:
-    image: postgres:13
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: dbo1
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
-
   app:
+    container_name: dbo_container
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+      - DATABASE_HOST=${PGHOST}
+      - DATABASE_PORT=${PGPORT}
     build: .
     ports:
-      - "8080:8080"
+      - '8080:8080'
+    restart: on-failure
+    volumes:
+      - .:/app
     depends_on:
-      - db
+      - postgresdb
+    networks:
+      - dbo_test
+
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres_container
     environment:
-      DB_HOST: db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: dbo1
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+      - DATABASE_HOST=${PGHOST}
+    ports:
+      - '5434:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - dbo_test
 
 volumes:
-  db_data:
+  pg_data:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  dbo_test:
+    driver: bridge
